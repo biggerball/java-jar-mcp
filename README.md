@@ -118,9 +118,10 @@ If you're using a global MCP configuration file (e.g., `~/.cursor/mcp.json`), co
 {
   "mcpServers": {
     "java-jar-mcp": {
-      "command": "node",
+      "command": "sh",
       "args": [
-        "/Users/username/.cursor/extensions/javajarmcp.javajarmcp-0.0.1/mcp-server/dist/index.js"
+        "-c",
+        "node \"$(ls -d /Users/username/.cursor/extensions/javajarmcp.javajarmcp-* 2>/dev/null | sort -V -r | head -n 1)/mcp-server/dist/index.js\""
       ],
       "env": {
         "MAVEN_REPO_PATH": "/Users/username/.m2/repository"
