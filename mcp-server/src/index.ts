@@ -125,19 +125,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 	}
 });
 
-// List available resources
-server.setRequestHandler(ListResourcesRequestSchema, async () => {
-	return {
-		resources: [
-			{
-				uri: 'maven://dependencies?pomPath={pomPath}',
-				name: 'Maven Dependencies',
-				description: 'List of all Maven dependencies for a project. Use format: maven://dependencies?pomPath=/path/to/pom.xml',
-				mimeType: 'application/json',
-			},
-		],
-	};
-});
+// // List available resources
+// server.setRequestHandler(ListResourcesRequestSchema, async () => {
+// 	return {
+// 		resources: [
+// 			{
+// 				uri: 'maven://dependencies?pomPath={pomPath}',
+// 				name: 'Maven Dependencies',
+// 				description: 'List of all Maven dependencies for a project. Use format: maven://dependencies?pomPath=/path/to/pom.xml',
+// 				mimeType: 'application/json',
+// 			},
+// 		],
+// 	};
+// });
 
 // Handle resource reads
 server.setRequestHandler(ReadResourceRequestSchema, async (request) => {

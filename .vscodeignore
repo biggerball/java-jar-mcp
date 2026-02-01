@@ -1,8 +1,9 @@
-# Dependencies
+# Dependencies (exclude root node_modules, but include mcp-server/node_modules for runtime)
 node_modules/
-mcp-server/node_modules/
 package-lock.json
-mcp-server/package-lock.json
+# Include mcp-server/node_modules for runtime dependencies
+# mcp-server/node_modules/  # Commented out to include in package
+# mcp-server/package-lock.json  # Commented out to include in package
 
 # Source maps (optional - comment out if you want to include them)
 out/**/*.map

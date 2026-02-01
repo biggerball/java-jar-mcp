@@ -32,6 +32,9 @@ export class MCPClientManager {
 			return;
 		}
 
+		// Ensure MCP server dependencies are installed
+		await this.ensureMCPServerDependencies();
+
 		// Get MCP server path
 		const mcpServerPath = this.getMCPServerPath();
 		// eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -53,8 +56,12 @@ export class MCPClientManager {
 		// Register MCP server in VSCode configuration for this workspace folder
 		await this.registerMCPServer(workspaceFolder, mcpServerPath, env);
 
-		// Spawn MCP server process
+		// Get MCP server directory for proper module resolution
+		const mcpServerDir = path.dirname(path.dirname(mcpServerPath)); // mcp-server directory
+
+		// Spawn MCP server process with correct working directory
 		const mcpProcess = spawn('node', [mcpServerPath], {
+			cwd: mcpServerDir, // Set working directory to mcp-server for proper module resolution
 			env,
 			stdio: ['pipe', 'pipe', 'pipe']
 		});
@@ -161,6 +168,81 @@ export class MCPClientManager {
 		} catch (error) {
 			console.warn(`Failed to unregister MCP server from configuration: ${error}`);
 		}
+	}
+
+	/**
+	 * Ensure MCP server dependencies are installed
+	 */
+	private async ensureMCPServerDependencies(): Promise<void> {
+		const extensionPath = this.context.extensionPath;
+		const mcpServerDir = path.join(extensionPath, 'mcp-server');
+		const nodeModulesPath = path.join(mcpServerDir, 'node_modules');
+		const packageJsonPath = path.join(mcpServerDir, 'package.json');
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
+		const fs = require('fs');
+
+		// Check if node_modules exists
+		if (fs.existsSync(nodeModulesPath) && fs.existsSync(path.join(nodeModulesPath, '@modelcontextprotocol', 'sdk'))) {
+			console.log('MCP server dependencies already installed');
+			return;
+		}
+
+		// Check if package.json exists
+		if (!fs.existsSync(packageJsonPath)) {
+			console.warn('MCP server package.json not found, skipping dependency installation');
+			return;
+		}
+
+		// Show progress notification
+		const progressOptions: vscode.ProgressOptions = {
+			location: vscode.ProgressLocation.Notification,
+			title: 'Installing MCP server dependencies...',
+			cancellable: false
+		};
+
+		await vscode.window.withProgress(progressOptions, async (progress) => {
+			progress.report({ increment: 0, message: 'Installing dependencies...' });
+
+			return new Promise<void>((resolve, reject) => {
+				console.log(`Installing MCP server dependencies in ${mcpServerDir}`);
+				
+				// Use npm install --production to only install runtime dependencies
+				const installProcess = spawn('npm', ['install', '--production', '--no-audit', '--no-fund'], {
+					cwd: mcpServerDir,
+					stdio: ['ignore', 'pipe', 'pipe'],
+					shell: true
+				});
+
+				let output = '';
+				installProcess.stdout.on('data', (data) => {
+					output += data.toString();
+				});
+
+				installProcess.stderr.on('data', (data) => {
+					output += data.toString();
+				});
+
+				installProcess.on('close', (code) => {
+					if (code === 0) {
+						console.log('MCP server dependencies installed successfully');
+						progress.report({ increment: 100, message: 'Dependencies installed' });
+						resolve();
+					} else {
+						const errorMsg = `Failed to install dependencies: ${output}`;
+						console.error(errorMsg);
+						vscode.window.showWarningMessage('Failed to install MCP server dependencies. Please install manually: cd mcp-server && npm install --production');
+						reject(new Error(errorMsg));
+					}
+				});
+
+				installProcess.on('error', (error) => {
+					const errorMsg = `Failed to spawn npm install: ${error.message}`;
+					console.error(errorMsg);
+					vscode.window.showWarningMessage('Failed to install MCP server dependencies. Please install manually: cd mcp-server && npm install --production');
+					reject(new Error(errorMsg));
+				});
+			});
+		});
 	}
 
 	/**

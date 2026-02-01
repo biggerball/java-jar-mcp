@@ -13,7 +13,6 @@ A VSCode extension that provides MCP (Model Context Protocol) server functionali
 - [How It Works](#how-it-works)
 - [Configuration](#configuration)
 - [Development](#development)
-- [MCP Resources](#mcp-resources)
 - [Limitations](#limitations)
 - [Future Improvements](#future-improvements)
 - [Support & Donation](#support--donation)
@@ -22,11 +21,8 @@ A VSCode extension that provides MCP (Model Context Protocol) server functionali
 ## Features
 
 - **Automatic Maven Project Detection**: Automatically detects Maven projects by looking for `pom.xml`
-- **Multi-Workspace Support**: Each workspace folder gets its own isolated MCP server instance
-- **Global Configuration File**: Supports multiple Cursor instances with a shared global temporary file for workspace configurations
 - **Class Definition Lookup**: Find Java class definitions from Maven dependencies
 - **Dependency Listing**: List all Maven dependencies for a project
-- **Source Code Extraction**: Extracts source code from `-sources.jar` files when available
 - **JAR Class Search**: Search for classes within JAR files using patterns
 
 ## Architecture
@@ -35,20 +31,6 @@ The extension consists of two main components:
 
 1. **VSCode Extension** (`src/`): Manages workspace folders and spawns MCP server processes
 2. **MCP Server** (`mcp-server/`): Provides tools and resources for AI to query Java class information
-
-### Multi-Workspace Architecture
-
-```
-VSCode Extension (MCP Client)
-├── Workspace Folder 1 → MCP Server Instance 1 (stdio)
-├── Workspace Folder 2 → MCP Server Instance 2 (stdio)
-└── Workspace Folder N → MCP Server Instance N (stdio)
-```
-
-Each workspace folder gets its own isolated MCP server process, ensuring:
-- Independent state and caching
-- Workspace-specific Maven configuration
-- No interference between different projects
 
 ## Installation
 
@@ -128,27 +110,7 @@ Search for classes matching a pattern in a JAR file.
 
 **Returns:** List of matching class names
 
-## How It Works
-
-1. **Workspace Detection**: The extension listens for workspace folder changes and detects Maven projects
-2. **MCP Server Spawn**: For each Maven project, a separate MCP server process is spawned
-3. **Dependency Resolution**: The MCP server parses `pom.xml` and locates JAR files in the Maven local repository (`~/.m2/repository`)
-4. **Class Extraction**: When a class is requested:
-   - First tries to find `-sources.jar` for the dependency
-   - If found, extracts Java source code directly
-   - Otherwise, falls back to parsing compiled class files
-5. **Caching**: Results are cached using LRU cache to improve performance
-
 ## Configuration
-
-### Automatic Configuration (VSCode Extension)
-
-When using the VSCode extension, it automatically:
-- Detects Maven projects by looking for `pom.xml`
-- Starts MCP servers for each workspace folder
-- Configures MCP servers with Maven repository path
-
-### Manual Configuration (Global MCP Config)
 
 If you're using a global MCP configuration file (e.g., `~/.cursor/mcp.json`), configure it as follows:
 
@@ -158,30 +120,16 @@ If you're using a global MCP configuration file (e.g., `~/.cursor/mcp.json`), co
     "java-jar-mcp": {
       "command": "node",
       "args": [
-        "/path/to/mcp-server/dist/index.js"
+        "/Users/username/.cursor/extensions/javajarmcp.javajarmcp-0.0.1/mcp-server/dist/index.js"
       ],
       "env": {
         "MAVEN_REPO_PATH": "/Users/username/.m2/repository"
-      }
+      },
+      "disabled": false
     }
   }
 }
 ```
-
-**Multi-Workspace Support:**
-- Multiple workspaces are supported by passing different `pomPath` parameters to the tools
-- Each tool call can specify a different `pomPath` to work with different Maven projects
-- No need for separate MCP server instances or global configuration files
-
-### Configuration Details
-
-The extension automatically detects:
-- Maven local repository path (defaults to `~/.m2/repository`)
-
-**Multi-Workspace Usage:**
-- Use the `pomPath` parameter in tool calls to specify which Maven project to use
-- Example: `find_class_definition` with `pomPath: "/path/to/project1/pom.xml"` for project 1
-- Example: `find_class_definition` with `pomPath: "/path/to/project2/pom.xml"` for project 2
 
 ## Development
 
@@ -214,8 +162,8 @@ npm run compile
 # Build MCP server
 npm run build:mcp
 
-# Watch mode (extension)
-npm run watch
+# Package
+npm run package
 ```
 
 ### Testing
@@ -223,12 +171,6 @@ npm run watch
 1. Open a Maven project in VSCode
 2. Check the Output panel for MCP server logs
 3. Use an AI assistant that supports MCP to test the tools
-
-## MCP Resources
-
-The extension also provides MCP resources:
-
-- **`maven://dependencies?pomPath={pomPath}`**: Returns a JSON list of all Maven dependencies for a project. Example: `maven://dependencies?pomPath=/path/to/project/pom.xml`
 
 ## Limitations
 
@@ -251,7 +193,7 @@ If you find this extension helpful and would like to support its development, I'
 
 Your support helps me continue improving this project and creating more useful tools for the developer community.
 
-![Buy Me a Coffee](assets/coffee-qr-code.png)
+![Buy Me a Coffee](https://github.com/biggerball/java-jar-mcp/raw/HEAD/assets/coffee-qr-code.png)
 
 *If you enjoy using this extension, your support would mean a lot to me. Thank you!* 🙏
 

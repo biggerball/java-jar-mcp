@@ -114,19 +114,6 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
         };
     }
 });
-// List available resources
-server.setRequestHandler(types_js_1.ListResourcesRequestSchema, async () => {
-    return {
-        resources: [
-            {
-                uri: 'maven://dependencies',
-                name: 'Maven Dependencies',
-                description: 'List of all Maven dependencies for the project',
-                mimeType: 'application/json',
-            },
-        ],
-    };
-});
 // Handle resource reads
 server.setRequestHandler(types_js_1.ReadResourceRequestSchema, async (request) => {
     const { uri } = request.params;
