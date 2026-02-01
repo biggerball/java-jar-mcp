@@ -1,0 +1,43 @@
+{
+	"name": "java-jar-mcp",
+	"displayName": "Java JAR MCP Server",
+	"description": "MCP server for Java Maven projects to provide jar class definitions to AI. Enables AI assistants to access Java class definitions from Maven dependencies, solving the limitation where IDEs cannot automatically read jar file classes.",
+	"version": "0.0.1",
+	"publisher": "java-jar-mcp",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/your-username/vscode-source-mcp.git"
+	},
+	"engines": {
+		"vscode": "^1.102.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"workspaceContains:pom.xml"
+	],
+	"main": "./out/extension.js",
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "npm run build:mcp && tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"package": "npm run compile && vsce package",
+		"build:mcp": "cd mcp-server && npm install && npx tsc"
+	},
+	"devDependencies": {
+		"@types/node": "^20.0.0",
+		"@types/vscode": "^1.102.0",
+		"typescript": "^5.0.0",
+		"@vscode/vsce": "^2.22.0"
+	},
+	"dependencies": {
+		"@modelcontextprotocol/sdk": "^1.0.0"
+	},
+	"__metadata": {
+		"installedTimestamp": 1769933084172,
+		"targetPlatform": "undefined",
+		"size": 32621811
+	}
+}

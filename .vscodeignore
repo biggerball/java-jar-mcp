@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+mcp-server/node_modules/
+package-lock.json
+mcp-server/package-lock.json
+
+# Source maps (optional - comment out if you want to include them)
+out/**/*.map
+mcp-server/dist/**/*.map
+
+# Source files (only compiled output should be included)
+src/**/*.ts
+mcp-server/src/
+mcp-server/tsconfig.json
+tsconfig.json
+
+# VS Code
+.vscode-test/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+
+# Test files
+**/*.test.ts
+**/*.test.js
+**/*.spec.ts
+**/*.spec.js
+mcp-server/dist/**/*.test.js
+
+# Package files (exclude existing packages)
+*.vsix

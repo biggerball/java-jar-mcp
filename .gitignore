@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+mcp-server/node_modules/
+
+# Build outputs
+out/
+mcp-server/dist/
+
+# VS Code
+.vscode-test/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Package files
+*.vsix
+
+# Temporary files
+*.tmp
+*.temp
+
+# IDE
+.idea/
