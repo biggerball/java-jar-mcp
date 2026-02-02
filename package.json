@@ -1,43 +1,42 @@
 {
-	"name": "JavaJARMCP",
-	"displayName": "JavaJARMCP",
-	"description": "MCP server for Java Maven projects to provide jar class definitions to AI. Enables AI assistants to access Java class definitions from Maven dependencies, solving the limitation where IDEs cannot automatically read jar file classes.",
+	"name": "@biggerball/java-jar-mcp",
 	"version": "0.0.2",
-	"publisher": "JavaJARMCP",
+	"description": "MCP server for Java Maven projects to provide jar class definitions to AI",
 	"license": "MIT",
+	"type": "module",
+	"main": "dist/index.js",
+	"bin": {
+		"java-jar-mcp": "dist/index.js"
+	},
+	"files": [
+		"dist",
+		"package.json",
+		"README.md"
+	],
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/biggerball/java-jar-mcp.git"
 	},
-	"engines": {
-		"vscode": "^1.102.0"
+	"publishConfig": {
+		"access": "public"
 	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-		"workspaceContains:pom.xml"
-	],
-	"main": "./out/extension.js",
 	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "npm run build:mcp && tsc -p ./",
-		"watch": "tsc -watch -p ./",
-		"package": "npm run compile && vsce package",
-		"build:mcp": "cd mcp-server && npm install --production && npx tsc"
+		"build": "npm install && tsc",
+		"watch": "tsc -w",
+		"start": "node dist/index.js",
+		"test": "node --test dist/**/*.test.js",
+		"test:watch": "node --test --watch dist/**/*.test.js"
+	},
+	"dependencies": {
+		"@modelcontextprotocol/sdk": "^1.0.0",
+		"pom-parser": "^1.1.1",
+		"yauzl": "^2.10.0",
+		"adm-zip": "^0.5.10",
+		"zod": "^3.22.4"
 	},
 	"devDependencies": {
 		"@types/node": "^20.0.0",
-		"@types/vscode": "^1.102.0",
-		"typescript": "^5.0.0",
-		"@vscode/vsce": "^2.22.0"
-	},
-	"dependencies": {
-		"@modelcontextprotocol/sdk": "^1.0.0"
-	},
-	"__metadata": {
-		"installedTimestamp": 1769933084172,
-		"targetPlatform": "undefined",
-		"size": 32621811
+		"@types/yauzl": "^2.10.3",
+		"typescript": "^5.0.0"
 	}
 }

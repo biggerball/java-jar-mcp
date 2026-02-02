@@ -1,78 +1,41 @@
-# Java JAR MCP Server - VSCode Extension
+# Java JAR MCP Server
 
 [English](README.md) | [中文](README.zh-CN.md) | [日本語](README.ja-JP.md)
 
-A VSCode extension that provides MCP (Model Context Protocol) server functionality for Java Maven projects. This extension enables AI assistants to access Java class definitions from Maven dependencies, solving the limitation where Cursor and other IDEs cannot automatically read jar file classes.
-
-## Table of Contents
-
-- [Features](#features)
-- [Architecture](#architecture)
-- [Installation](#installation)
-- [Usage](#usage)
-- [How It Works](#how-it-works)
-- [Configuration](#configuration)
-- [Development](#development)
-- [Limitations](#limitations)
-- [Future Improvements](#future-improvements)
-- [Support & Donation](#support--donation)
-- [License](#license)
+An npm package that provides MCP (Model Context Protocol) server functionality for Java Maven projects. This server enables AI assistants to access Java class definitions from Maven dependencies, solving the limitation where Cursor and other VSCode-based IDEs cannot automatically read jar file classes.
 
 ## Features
 
-- **Automatic Maven Project Detection**: Automatically detects Maven projects by looking for `pom.xml`
 - **Class Definition Lookup**: Find Java class definitions from Maven dependencies
 - **Dependency Listing**: List all Maven dependencies for a project
 - **JAR Class Search**: Search for classes within JAR files using patterns
-
-## Architecture
-
-The extension consists of two main components:
-
-1. **VSCode Extension** (`src/`): Manages workspace folders and spawns MCP server processes
-2. **MCP Server** (`mcp-server/`): Provides tools and resources for AI to query Java class information
 
 ## Installation
 
 ### Prerequisites
 
-- Node.js 18+ 
-- VSCode 1.102+
+- Node.js 18+
 - Maven installed (for Maven projects)
 
-### Build from Source
+### Using via npx
 
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm install
-   cd mcp-server
-   npm install
-   cd ..
-   ```
-
-3. Build the extension and MCP server:
-   ```bash
-   npm run compile
-   npm run build:mcp
-   ```
-
-4. Package the extension:
-   ```bash
-   npm run package
-   ```
-
-5. Install the `.vsix` file in VSCode:
-   - Open VSCode
-   - Go to Extensions view
-   - Click "..." menu → "Install from VSIX..."
-   - Select the generated `.vsix` file
+```json
+{
+  "mcpServers": {
+    "java-jar-mcp": {
+      "command": "npx",
+      "args": ["-y", "@biggerball/java-jar-mcp"],
+      "env": {
+        "MAVEN_REPO_PATH": "/Users/username/.m2/repository"
+      }
+    }
+  }
+}
+```
 
 ## Usage
 
-1. Open a workspace folder containing a Maven project (with `pom.xml`)
-2. The extension will automatically activate and start an MCP server for that workspace
-3. The MCP server provides the following tools to AI assistants:
+After configuration, the MCP server will automatically start and provide the following tools to AI assistants:
 
 ### Available MCP Tools
 
@@ -81,7 +44,7 @@ Find the definition of a Java class from Maven dependencies.
 
 **Parameters:**
 - `className` (string, required): Fully qualified class name (e.g., `java.util.ArrayList`)
-- `pomPath` (string, required): Path to pom.xml file (e.g., `"/path/to/project/pom.xml"`)
+- `pomPath` (string, optional): Path to pom.xml file (e.g., `"/path/to/project/pom.xml"`)
 
 **Returns:** Class definition with source code (if available), methods, and fields
 
@@ -110,68 +73,79 @@ Search for classes matching a pattern in a JAR file.
 
 **Returns:** List of matching class names
 
-## Configuration
+## Support & Donation
 
-If you're using a global MCP configuration file (e.g., `~/.cursor/mcp.json`), configure it as follows:
+If you find this project helpful and would like to support its development, I'd be grateful if you could buy me a coffee! ☕
 
-```json
-{
-  "mcpServers": {
-    "java-jar-mcp": {
-      "command": "sh",
-      "args": [
-        "-c",
-        "node \"$(ls -d /Users/username/.cursor/extensions/javajarmcp.javajarmcp-* 2>/dev/null | sort -V -r | head -n 1)/mcp-server/dist/index.js\""
-      ],
-      "env": {
-        "MAVEN_REPO_PATH": "/Users/username/.m2/repository"
-      },
-      "disabled": false
-    }
-  }
-}
-```
+Your support helps me continue improving this project and creating more useful tools for the developer community.
+
+![Buy Me a Coffee](assets/coffee-qr-code.jpg)
+
+*If you enjoy using this project, your support would mean a lot to me. Thank you!* 🙏
+
+## Local Development Installation
+
+1. Clone the repository
+2. Install dependencies and build:
+   ```bash
+   npm install
+   npm run build
+   ```
+
+3. Use local path in MCP configuration:
+   ```json
+   {
+     "mcpServers": {
+       "java-jar-mcp": {
+         "command": "node",
+         "args": ["/path/to/java-jar-mcp/dist/index.js"],
+         "env": {
+           "MAVEN_REPO_PATH": "/Users/username/.m2/repository"
+         }
+       }
+     }
+   }
+   ```
+
+## How It Works
+
+The MCP server works through the following steps:
+
+1. **Parse pom.xml**: Read and parse the Maven project's `pom.xml` file
+2. **Locate JAR files**: Find corresponding JAR files in the local Maven repository based on Maven coordinates
+3. **Extract class definitions**: Extract Java class definition information from JAR files
 
 ## Development
 
 ### Project Structure
 
 ```
-java-jar-mcp-extension/
-├── src/                      # VSCode extension code
-│   ├── extension.ts         # Extension entry point
-│   ├── mcpClientManager.ts  # MCP client lifecycle management
-│   └── workspaceManager.ts  # Workspace detection and Maven config
-├── mcp-server/              # MCP server code
-│   ├── src/
-│   │   ├── index.ts         # MCP server entry point
-│   │   ├── mavenParser.ts   # pom.xml parsing
-│   │   ├── jarLocator.ts    # JAR file location
-│   │   ├── classExtractor.ts # Class definition extraction
-│   │   ├── tools.ts         # MCP tool implementations
-│   │   └── cache.ts         # LRU cache implementation
-│   └── dist/                # Compiled MCP server
-└── out/                     # Compiled extension
+java-jar-mcp/
+├── src/
+│   ├── index.ts         # MCP server entry point
+│   ├── mavenParser.ts   # pom.xml parsing
+│   ├── jarLocator.ts    # JAR file location
+│   ├── classExtractor.ts # Class definition extraction
+│   ├── tools.ts         # MCP tool implementations
+│   └── cache.ts         # LRU cache implementation
+└── dist/                # Compiled MCP server
 ```
 
 ### Building
 
 ```bash
-# Build extension
-npm run compile
-
 # Build MCP server
-npm run build:mcp
+npm run build
 
-# Package
-npm run package
+# Watch mode build
+npm run watch
 ```
 
 ### Testing
 
-1. Open a Maven project in VSCode
-2. Check the Output panel for MCP server logs
-3. Use an AI assistant that supports MCP to test the tools
+```bash
+npm test
+```
 
 ## Limitations
 
@@ -187,16 +161,6 @@ npm run package
 - Support for Gradle projects
 - Enhanced Maven property resolution
 - Automatic multi-module project detection and dependency merging
-
-## Support & Donation
-
-If you find this extension helpful and would like to support its development, I'd be grateful if you could buy me a coffee! ☕
-
-Your support helps me continue improving this project and creating more useful tools for the developer community.
-
-![Buy Me a Coffee](https://github.com/biggerball/java-jar-mcp/raw/HEAD/assets/coffee-qr-code.png)
-
-*If you enjoy using this extension, your support would mean a lot to me. Thank you!* 🙏
 
 ## License
 
