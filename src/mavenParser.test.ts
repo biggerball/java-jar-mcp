@@ -1,10 +1,13 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { MavenParser } from './mavenParser.js';
 
 describe('MavenParser', () => {
-	const parser = new MavenParser();
+	const mavenRepoPath = process.env.MAVEN_REPO_PATH || path.join(os.homedir(), '.m2', 'repository');
+	const parser = new MavenParser(mavenRepoPath);
 	const TEST_POM_PATH = '/Users/baoxy/Documents/javaWork/ume-rentcar/ume-rentcar-api/pom.xml';
 
 	it('parsePom 应该能够解析 pom.xml 文件', async () => {
@@ -65,6 +68,88 @@ describe('MavenParser', () => {
 			dependencies2,
 			'应该返回缓存的相同数组引用'
 		);
+	});
+
+	it('parsePom 应该支持传递依赖解析', async () => {
+		if (!fs.existsSync(TEST_POM_PATH)) {
+			console.warn(`测试 pom.xml 文件不存在: ${TEST_POM_PATH}，跳过此测试`);
+			return;
+		}
+
+		// 解析包含传递依赖
+		const dependenciesWithTransitive = await parser.parsePom(TEST_POM_PATH, {
+			includeTransitive: true,
+		});
+
+		// 解析不包含传递依赖
+		const dependenciesWithoutTransitive = await parser.parsePom(TEST_POM_PATH, {
+			includeTransitive: false,
+		});
+
+		assert.ok(
+			dependenciesWithTransitive.length >= dependenciesWithoutTransitive.length,
+			'包含传递依赖的解析结果应该包含更多或相等的依赖数量'
+		);
+
+		console.log(`直接依赖: ${dependenciesWithoutTransitive.length}, 包含传递依赖: ${dependenciesWithTransitive.length}`);
+	});
+
+	it('parsePom 应该支持 scope 过滤', async () => {
+		if (!fs.existsSync(TEST_POM_PATH)) {
+			console.warn(`测试 pom.xml 文件不存在: ${TEST_POM_PATH}，跳过此测试`);
+			return;
+		}
+
+		// 只包含 compile scope
+		const compileDeps = await parser.parsePom(TEST_POM_PATH, {
+			scopes: ['compile'],
+		});
+
+		// 包含 compile 和 runtime scope
+		const compileRuntimeDeps = await parser.parsePom(TEST_POM_PATH, {
+			scopes: ['compile', 'runtime'],
+		});
+
+		assert.ok(
+			compileRuntimeDeps.length >= compileDeps.length,
+			'包含更多 scope 的解析结果应该包含更多或相等的依赖数量'
+		);
+
+		// 验证所有依赖都是 compile scope
+		for (const dep of compileDeps) {
+			const scope = dep.scope || 'compile';
+			assert.strictEqual(scope, 'compile', `依赖 ${dep.groupId}:${dep.artifactId} 应该是 compile scope`);
+		}
+	});
+
+	it('parsePom 应该支持 maxDepth 限制', async () => {
+		if (!fs.existsSync(TEST_POM_PATH)) {
+			console.warn(`测试 pom.xml 文件不存在: ${TEST_POM_PATH}，跳过此测试`);
+			return;
+		}
+
+		// 限制深度为 1
+		const shallowDeps = await parser.parsePom(TEST_POM_PATH, {
+			includeTransitive: true,
+			maxDepth: 1,
+		});
+
+		// 限制深度为 5
+		const deepDeps = await parser.parsePom(TEST_POM_PATH, {
+			includeTransitive: true,
+			maxDepth: 5,
+		});
+
+		assert.ok(
+			deepDeps.length >= shallowDeps.length,
+			'更大深度限制应该包含更多或相等的依赖数量'
+		);
+
+		// 验证深度限制
+		for (const dep of shallowDeps) {
+			const depth = dep.depth ?? 0;
+			assert.ok(depth <= 1, `依赖深度应该不超过 1，实际: ${depth}`);
+		}
 	});
 
 	it('findParentPom 应该能够找到父级 pom.xml', async () => {

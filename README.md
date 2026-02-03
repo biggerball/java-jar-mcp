@@ -147,17 +147,8 @@ npm run watch
 npm test
 ```
 
-## Limitations
-
-- Currently supports basic Maven dependency resolution (direct dependencies)
-- Class file parsing is simplified (full implementation would require Java class file parser)
-- Multi-module projects: Use `pomPath` parameter to specify different module pom.xml files
-- Property resolution: Basic Maven property resolution (does not handle all cases)
-
 ## Future Improvements
 
-- Full Maven dependency tree resolution (including transitive dependencies)
-- Better class file parsing using `java-class-tools` or similar
 - Support for Gradle projects
 - Enhanced Maven property resolution
 - Automatic multi-module project detection and dependency merging

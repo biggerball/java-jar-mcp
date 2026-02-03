@@ -45,8 +45,11 @@ export class MCPServerTools {
 		}
 
 		try {
-			// Get project dependencies from specified pom.xml
-			const dependencies = await this.mavenParser.parsePom(pomPath);
+			// Get project dependencies from specified pom.xml (including transitive dependencies)
+			const dependencies = await this.mavenParser.parsePom(pomPath, {
+				includeTransitive: true,
+				scopes: ['compile', 'runtime'],
+			});
 
 			// Find JAR containing the class
 			const jarInfo = await this.jarLocator.findJarForClass(className, dependencies);
@@ -145,7 +148,12 @@ export class MCPServerTools {
 			};
 		}
 
-		const cacheKey = pomPath;
+		// Use consistent options for caching (always include transitive dependencies)
+		const parseOptions = {
+			includeTransitive: true,
+			scopes: ['compile', 'runtime'],
+		};
+		const cacheKey = `${pomPath}:${JSON.stringify(parseOptions)}`;
 
 		// Check cache
 		const cached = this.dependenciesCache.get(cacheKey);
@@ -154,7 +162,8 @@ export class MCPServerTools {
 		}
 
 		try {
-			const dependencies = await this.mavenParser.parsePom(pomPath);
+			// Parse dependencies including transitive dependencies
+			const dependencies = await this.mavenParser.parsePom(pomPath, parseOptions);
 			// Cache the result
 			this.dependenciesCache.set(cacheKey, dependencies);
 			return this.formatDependenciesResponse(dependencies);

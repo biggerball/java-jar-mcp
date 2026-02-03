@@ -1,23 +1,25 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { MCPServerTools } from './tools.js';
 import { MavenParser } from './mavenParser.js';
 import { JarLocator } from './jarLocator.js';
 import { ClassExtractor } from './classExtractor.js';
-import * as os from 'os';
-import * as path from 'path';
 
 describe('MCPServerTools - findClassDefinition', () => {
-	const mavenRepoPath = path.join(os.homedir(), '.m2', 'repository');
-	const mavenParser = new MavenParser();
+	const mavenRepoPath = process.env.MAVEN_REPO_PATH || path.join(os.homedir(), '.m2', 'repository');
+	const mavenParser = new MavenParser(mavenRepoPath);
 	const jarLocator = new JarLocator(mavenRepoPath);
 	const classExtractor = new ClassExtractor();
 	const tools = new MCPServerTools(mavenParser, jarLocator, classExtractor);
+	const TEST_POM_PATH = '/Users/baoxy/Documents/javaWork/ume-rentcar/ume-rentcar-api/pom.xml';
 
 	console.log('mavenRepoPath:', mavenRepoPath);
-	it('应该能够反编译 com.umetrip.mid.umeruler.UmeCommonRuler 类', async () => {
+	it('应该能够找到直接依赖的类 - com.umetrip.mid.umeruler.UmeCommonRuler', async () => {
 		const className = 'com.umetrip.mid.umeruler.UmeCommonRuler';
-		const pomPath = '/Users/baoxy/Documents/javaWork/ume-rentcar/ume-rentcar-api/pom.xml';
+		const pomPath = TEST_POM_PATH;
 
 		const result = await tools.findClassDefinition({
 			className,
@@ -104,6 +106,95 @@ describe('MCPServerTools - findClassDefinition', () => {
 		console.log('内容预览:', textContent.text);
 	});
 
+	it('应该能够找到传递依赖的类 - com.umetrip.user.login.dao.domain.Invitation', async () => {
+		const className = 'com.umetrip.user.login.dao.domain.Invitation';
+		const pomPath = TEST_POM_PATH;
+
+		// 验证 pom.xml 文件存在
+		if (!fs.existsSync(pomPath)) {
+			console.warn(`测试 pom.xml 文件不存在: ${pomPath}，跳过此测试`);
+			return;
+		}
+
+		const result = await tools.findClassDefinition({
+			className,
+			pomPath,
+		});
+
+		// 验证结果不为空
+		assert(result !== null, '结果不应为空');
+		assert(result !== undefined, '结果不应为 undefined');
+
+		// 验证没有错误
+		assert(
+			!result.isError,
+			`不应该返回错误，但得到了: ${JSON.stringify(result)}`
+		);
+
+		// 验证返回了内容
+		assert(
+			result.content && result.content.length > 0,
+			'应该返回内容数组'
+		);
+
+		// 验证内容格式
+		const textContent = result.content.find((c: any) => c.type === 'text');
+		assert(textContent !== undefined, '应该包含文本内容');
+		assert(
+			typeof textContent.text === 'string',
+			'文本内容应该是字符串'
+		);
+		assert(
+			textContent.text.length > 0,
+			'文本内容不应为空'
+		);
+
+		// 验证包含类名
+		assert(
+			textContent.text.includes(className),
+			`应该包含类名 ${className}`
+		);
+
+		// 验证包含 JAR 文件路径信息
+		assert(
+			textContent.text.includes('JAR File') || textContent.text.includes('.jar'),
+			'应该包含 JAR 文件路径信息'
+		);
+
+		// 验证 JAR 文件路径包含 umeuser-login-domain（传递依赖）
+		assert(
+			textContent.text.includes('umeuser-login-domain'),
+			`应该从传递依赖 umeuser-login-domain 中找到类，实际内容: ${textContent.text.substring(0, 500)}`
+		);
+
+		// 验证包含源代码（从编译后的 class 文件反编译）
+		assert(
+			textContent.text.includes('Source Code'),
+			`应该包含 "Source Code" 标题（从编译后的 class 文件反编译），实际内容: ${textContent.text.substring(0, 500)}`
+		);
+
+		// 验证包含 Java 代码块标记
+		assert(
+			textContent.text.includes('```java'),
+			`应该包含 Java 代码块标记 (\`\`\`java)，实际内容: ${textContent.text.substring(0, 1000)}`
+		);
+
+		// 验证包含类定义关键字
+		const hasJavaKeywords = textContent.text.includes('public') || 
+			textContent.text.includes('class') ||
+			textContent.text.includes('private') ||
+			textContent.text.includes('package');
+		
+		assert(
+			hasJavaKeywords,
+			`应该包含 Java 关键字（public/class/private/package），实际内容: ${textContent.text.substring(0, 1000)}`
+		);
+
+		console.log('测试通过！成功找到传递依赖中的类并反编译源代码:', className);
+		console.log('返回内容长度:', textContent.text.length);
+		console.log('内容预览:', textContent.text.substring(0, 500));
+	});
+
 	it('当 pomPath 缺失时应该返回错误', async () => {
 		const result = await tools.findClassDefinition({
 			className: 'com.umetrip.mid.umeruler.UmeCommonRuler',
@@ -127,7 +218,7 @@ describe('MCPServerTools - findClassDefinition', () => {
 	it('当类不存在时应该返回适当的错误消息', async () => {
 		const result = await tools.findClassDefinition({
 			className: 'com.nonexistent.ClassThatDoesNotExist',
-			pomPath: '/Users/baoxy/Documents/javaWork/ume-rentcar/ume-rentcar-api/pom.xml',
+			pomPath: TEST_POM_PATH,
 		});
 
 		// 如果类不存在，应该返回错误或提示信息

@@ -19,7 +19,7 @@ console.error('MCP Server starting...');
 console.error(`Maven Repo: ${MAVEN_REPO_PATH || 'default (~/.m2/repository)'}`);
 
 // Initialize components
-const mavenParser = new MavenParser();
+const mavenParser = new MavenParser(MAVEN_REPO_PATH);
 const jarLocator = new JarLocator(MAVEN_REPO_PATH);
 const classExtractor = new ClassExtractor();
 const tools = new MCPServerTools(mavenParser, jarLocator, classExtractor);
