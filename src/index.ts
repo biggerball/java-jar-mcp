@@ -54,10 +54,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 						},
 						pomPath: {
 							type: 'string',
-							description: 'Path to pom.xml (optional, for multi-workspace support)',
+							description: 'Path to pom.xml file (e.g., "/path/to/project/pom.xml")',
 						},
 					},
-					required: ['className'],
+					required: ['className', 'pomPath'],
 				},
 			},
 			{
