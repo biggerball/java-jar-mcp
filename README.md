@@ -24,7 +24,7 @@ An npm package that provides MCP (Model Context Protocol) server functionality f
   "mcpServers": {
     "java-jar-mcp": {
       "command": "npx",
-      "args": ["-y", "@biggerball/java-jar-mcp"],
+      "args": ["-y", "@biggerball/java-jar-mcp@latest"],
       "env": {
         "MAVEN_REPO_PATH": "/Users/username/.m2/repository"
       }
@@ -44,7 +44,7 @@ Find the definition of a Java class from Maven dependencies.
 
 **Parameters:**
 - `className` (string, required): Fully qualified class name (e.g., `java.util.ArrayList`)
-- `pomPath` (string, optional): Path to pom.xml file (e.g., `"/path/to/project/pom.xml"`)
+- `pomPath` (string, required): Path to pom.xml file (e.g., `"/path/to/project/pom.xml"`)
 
 **Returns:** Class definition with source code (if available), methods, and fields
 

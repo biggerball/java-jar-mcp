@@ -21,15 +21,15 @@
 
 ```json
 {
-  "mcpServers": {
-    "java-jar-mcp": {
-      "command": "npx",
-      "args": ["-y", "@biggerball/java-jar-mcp"],
-      "env": {
-        "MAVEN_REPO_PATH": "/Users/username/.m2/repository"
+   "mcpServers": {
+      "java-jar-mcp": {
+         "command": "npx",
+         "args": ["-y", "@biggerball/java-jar-mcp@latest"],
+         "env": {
+            "MAVEN_REPO_PATH": "/Users/username/.m2/repository"
+         }
       }
-    }
-  }
+   }
 }
 ```
 
@@ -44,7 +44,7 @@
 
 **参数：**
 - `className` (string, 必需)：完全限定类名（例如：`java.util.ArrayList`）
-- `pomPath` (string, 可选)：pom.xml 文件的路径（例如：`"/path/to/project/pom.xml"`）
+- `pomPath` (string, 必需)：pom.xml 文件的路径（例如：`"/path/to/project/pom.xml"`）
 
 **返回：** 包含源代码（如果可用）、方法和字段的类定义
 
