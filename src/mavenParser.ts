@@ -211,10 +211,20 @@ export class MavenParser {
 			let propValue: string | undefined;
 
 			// 1. Check built-in Maven properties
-			if (propName === 'project.version' || propName === 'pom.version') {
+			// Handle simple "version" property (maps to project.version)
+			// When version is not defined in current pom, it's inherited from parent
+			if (propName === 'version' || propName === 'project.version' || propName === 'pom.version') {
 				propValue = project.version || project.Version || '';
+				// If not found, try to get from parent pom context
+				if (!propValue && context?.parent) {
+					propValue = context.parent.version;
+				}
 			} else if (propName === 'project.groupId' || propName === 'pom.groupId') {
 				propValue = project.groupId || project.groupid || '';
+				// If not found, try to get from parent pom context
+				if (!propValue && context?.parent) {
+					propValue = context.parent.groupId;
+				}
 			} else if (propName === 'project.artifactId' || propName === 'pom.artifactId') {
 				propValue = project.artifactId || project.artifactid || '';
 			} else if (propName === 'project.parent.version' || propName === 'pom.parent.version') {
@@ -585,6 +595,7 @@ export class MavenParser {
 				...context.dependencyManagement,
 				...(depParentContext?.dependencyManagement || new Map()),
 			]),
+			parent: depParentContext?.parent || context.parent,
 		};
 
 		// Extract dependencies from the dependency's pom
